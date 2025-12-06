@@ -1,0 +1,165 @@
++*In[ ]:*+
+[source, ipython3]
+----
+# tax_program.py
+
+# ------------------------------
+#  CẤU HÌNH BAN ĐẦU
+# ------------------------------
+config = {
+    "giam_tru_ban_than": 11000000,
+    "giam_tru_phu_thuoc": 4400000
+}
+
+worker = {"ten": "", "nam": 0, "so_phu_thuoc": 0}
+incomes = {i: 0 for i in range(1, 13)}
+taxes = {i: 0 for i in range(1, 13)}
+
+# ------------------------------
+#  BIỂU THUẾ LŨY TIẾN
+# ------------------------------
+brackets = [
+    (5000000, 0.05),
+    (10000000, 0.10),
+    (18000000, 0.15),
+    (32000000, 0.20),
+    (52000000, 0.25),
+    (80000000, 0.30),
+    (10**18, 0.35)
+]
+
+def tinh_thue_luy_tien(tntt):
+    """tntt = thu nhập tính thuế."""
+    if tntt <= 0:
+        return 0
+    tax = 0
+    prev = 0
+    for limit, rate in brackets:
+        taxable = min(tntt, limit) - prev
+        if taxable > 0:
+            tax += taxable * rate
+        prev = limit
+        if tntt <= limit:
+            break
+    return tax
+
+
+# ------------------------------
+#  CHỨC NĂNG PHẦN MỀM
+# ------------------------------
+def setup_mien_tru():
+    print("\n--- Thiết lập mức miễn trừ ---")
+    config["giam_tru_ban_than"] = int(input("Giảm trừ bản thân: "))
+    config["giam_tru_phu_thuoc"] = int(input("Giảm trừ người phụ thuộc: "))
+    print("Cập nhật thành công.\n")
+
+
+def setup_worker():
+    print("\n--- Thiết lập thông tin người lao động ---")
+    worker["ten"] = input("Tên: ")
+    worker["nam"] = int(input("Năm tính thuế: "))
+    worker["so_phu_thuoc"] = int(input("Số người phụ thuộc: "))
+    print("Đã cập nhật thông tin.\n")
+
+
+def nhap_thu_nhap_thang():
+    print("\n--- Nhập thu nhập tháng ---")
+    thang = int(input("Nhập tháng (1–12): "))
+    if not (1 <= thang <= 12):
+        print("Tháng không hợp lệ!")
+        return
+
+    incomes[thang] = int(input("Thu nhập tháng: "))
+
+    tntt = incomes[thang] \
+           - config["giam_tru_ban_than"] \
+           - worker["so_phu_thuoc"] * config["giam_tru_phu_thuoc"]
+
+    tax = tinh_thue_luy_tien(tntt)
+    taxes[thang] = tax
+
+    print(f"Thuế TNCN tháng {thang}: {tax:,} VND\n")
+
+
+def quyet_toan():
+    print("\n===== QUYẾT TOÁN THUẾ THU NHẬP CẢ NĂM =====")
+    print(f"Người lao động: {worker['ten']}")
+    print(f"Năm: {worker['nam']}")
+    print(f"Số người phụ thuộc: {worker['so_phu_thuoc']}\n")
+
+    print(f"{'Tháng':<8}{'Thu nhập':<15}{'Thuế TNCN':<15}")
+    print("-"*40)
+
+    tong_thu_nhap = sum(incomes.values())
+    tong_thue_tam_nop = sum(taxes.values())
+
+    # Thu nhập tính thuế cả năm
+    tntt_nam = tong_thu_nhap \
+               - 12*config["giam_tru_ban_than"] \
+               - 12*worker["so_phu_thuoc"]*config["giam_tru_phu_thuoc"]
+
+    thue_thuc_te = tinh_thue_luy_tien(tntt_nam)
+
+    for th in range(1, 12+1):
+        print(f"{th:<8}{incomes[th]:<15,}{taxes[th]:<15,}")
+
+    print("\n--- TỔNG HỢP ---")
+    print(f"Tổng thuế tạm nộp: {tong_thue_tam_nop:,} VND")
+    print(f"Thuế TNCN thực tế phải nộp: {thue_thuc_te:,} VND")
+
+    chenh_lech = tong_thue_tam_nop - thue_thuc_te
+
+    if chenh_lech > 0:
+        print(f"→ Người nộp thuế được hoàn: {chenh_lech:,} VND")
+    else:
+        print(f"→ Người nộp thuế phải nộp thêm: {-chenh_lech:,} VND")
+    print()
+
+
+# ------------------------------
+#  MENU CHÍNH
+# ------------------------------
+def menu():
+    while True:
+        print("\n========== MENU ==========")
+        print("1. Thiết lập mức miễn trừ")
+        print("2. Thiết lập thông tin người lao động")
+        print("3. Nhập thu nhập tháng & tính thuế")
+        print("4. Quyết toán thuế cả năm")
+        print("0. Thoát")
+        print("==========================")
+        choice = input("Chọn chức năng: ")
+
+        if choice == "1": setup_mien_tru()
+        elif choice == "2": setup_worker()
+        elif choice == "3": nhap_thu_nhap_thang()
+        elif choice == "4": quyet_toan()
+        elif choice == "0":
+            print("Thoát chương trình.")
+            break
+        else:
+            print("Lựa chọn không hợp lệ!")
+
+menu()
+
+----
+
+
++*Out[ ]:*+
+----
+
+========== MENU ==========
+1. Thiết lập mức miễn trừ
+2. Thiết lập thông tin người lao động
+3. Nhập thu nhập tháng & tính thuế
+4. Quyết toán thuế cả năm
+0. Thoát
+==========================
+----
+
+
++*In[ ]:*+
+[source, ipython3]
+----
+
+----
